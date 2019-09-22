@@ -1,0 +1,155 @@
+# USER_ID=$(id --user) GROUP_ID=$(id --group) WORK_DIR=$(pwd) docker-compose up
+
+version: '3.7'
+
+services:
+  vendor:
+    command: sh -c 'mkdir "$WORK_DIR/vendor" && chown -R $USER_ID:$GROUP_ID "$WORK_DIR/vendor"'
+    image:   'alpine:3.10'
+    volumes:
+      - type:   bind
+        source: $WORK_DIR
+        target: $WORK_DIR
+
+  webdriver:
+    image:    'selenium/standalone-chrome:3.141.59-radium'
+    shm_size: '2gb'
+
+  php-56:
+    depends_on:
+      - vendor
+      - webdriver
+    entrypoint: /docker/docker-entrypoint.sh php -a
+    environment:
+      WORK_DIR: $WORK_DIR
+    image: 'php:5.6.40-cli-alpine3.8'
+    tty:   true
+    volumes:
+      - type:   bind
+        source: ./php
+        target: /docker
+      - type:   bind
+        source: $WORK_DIR
+        target: $WORK_DIR
+      - type:   volume
+        source: composer
+        target: /opt/composer
+      - type:   volume
+        source: vendor_php56
+        target: $WORK_DIR/vendor
+
+  # php-70:
+  #   depends_on:
+  #     - vendor
+  #     - webdriver
+  #   entrypoint: /docker/docker-entrypoint.sh php -a
+  #   environment:
+  #     WORK_DIR: $WORK_DIR
+  #   image: 'php:7.0.33-cli-alpine3.7'
+  #   tty:   true
+  #   volumes:
+  #     - type:   bind
+  #       source: ./php
+  #       target: /docker
+  #     - type:   bind
+  #       source: $WORK_DIR
+  #       target: $WORK_DIR
+  #     - type:   volume
+  #       source: composer
+  #       target: /opt/composer
+  #     - type:   volume
+  #       source: vendor_php70
+  #       target: $WORK_DIR/vendor
+
+  # php-71:
+  #   depends_on:
+  #     - vendor
+  #     - webdriver
+  #   entrypoint: /docker/docker-entrypoint.sh php -a
+  #   environment:
+  #     WORK_DIR: $WORK_DIR
+  #   image: 'php:7.1.32-cli-alpine3.10'
+  #   tty:   true
+  #   volumes:
+  #     - type:   bind
+  #       source: ./php
+  #       target: /docker
+  #     - type:   bind
+  #       source: $WORK_DIR
+  #       target: $WORK_DIR
+  #     - type:   volume
+  #       source: composer
+  #       target: /opt/composer
+  #     - type:   volume
+  #       source: vendor_php71
+  #       target: $WORK_DIR/vendor
+
+  # php-72:
+  #   depends_on:
+  #     - vendor
+  #     - webdriver
+  #   entrypoint: /docker/docker-entrypoint.sh php -a
+  #   environment:
+  #     WORK_DIR: $WORK_DIR
+  #   image: 'php:7.0.33-cli-alpine3.7' # @todo Set this.
+  #   tty:   true
+  #   volumes:
+  #     - type:   bind
+  #       source: ./php
+  #       target: /docker
+  #     - type:   bind
+  #       source: $WORK_DIR
+  #       target: $WORK_DIR
+  #     - type:   volume
+  #       source: composer
+  #       target: /opt/composer
+  #     - type:   volume
+  #       source: vendor_php72
+  #       target: $WORK_DIR/vendor
+
+  # php-73:
+  #   depends_on:
+  #     - vendor
+  #     - webdriver
+  #   entrypoint: /docker/docker-entrypoint.sh php -a
+  #   environment:
+  #     WORK_DIR: $WORK_DIR
+  #   image: 'php:7.3.9-cli-alpine3.10'
+  #   tty:   true
+  #   volumes:
+  #     - type:   bind
+  #       source: ./php
+  #       target: /docker
+  #     - type:   bind
+  #       source: $WORK_DIR
+  #       target: $WORK_DIR
+  #     - type:   volume
+  #       source: composer
+  #       target: /opt/composer
+  #     - type:   volume
+  #       source: vendor_php73
+  #       target: $WORK_DIR/vendor
+
+  nginx:
+    depends_on:
+      - php-56
+      # - php-70
+      # - php-71
+      # - php-72
+      # - php-73
+    image: 'nginx:1.16.0-alpine'
+    volumes:
+      - type:   bind
+        source: ./nginx/conf.d
+        target: /etc/nginx/conf.d
+      - type:   bind
+        source: ./ssl/default
+        target: /opt/ssl/default
+
+volumes:
+  composer:
+  vendor_php56:
+  # vendor_php70:
+  # vendor_php71:
+  # vendor_php72:
+  # vendor_php73:

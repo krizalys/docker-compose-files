@@ -1,0 +1,33 @@
+version: '3.7'
+
+services:
+  mysql:
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE:      joomla
+      MYSQL_USER:          joomla
+      MYSQL_PASSWORD:      joomla
+    image: 'mysql/mysql-server:5.5.60-1.1.5'
+    volumes:
+      - type:   volume
+        source: mysql
+        target: /var/lib/mysql
+
+  # docker-compose up --detach joomla
+  joomla:
+    depends_on:
+      - mysql
+    environment:
+      JOOMLA_DB_HOST:     mysql
+      JOOMLA_DB_NAME:     joomla
+      JOOMLA_DB_PASSWORD: joomla
+      JOOMLA_DB_USER:     joomla
+    image: 'joomla:php7.3-apache'
+    volumes:
+      - type:   volume
+        source: joomla
+        target: /var/www/html
+
+volumes:
+  joomla:
+  mysql:
